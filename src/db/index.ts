@@ -76,10 +76,59 @@ export async function initDatabase() {
     )
   `;
 
+  // Entity tables (via @sudobility/entity_service)
+  await client`
+    CREATE TABLE IF NOT EXISTS starter.entities (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      entity_slug VARCHAR(50) NOT NULL UNIQUE,
+      entity_type VARCHAR(20) NOT NULL DEFAULT 'personal',
+      display_name VARCHAR(255) NOT NULL,
+      description TEXT,
+      avatar_url TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+
+  await client`
+    CREATE TABLE IF NOT EXISTS starter.entity_members (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      entity_id UUID NOT NULL REFERENCES starter.entities(id) ON DELETE CASCADE,
+      user_id VARCHAR(128) NOT NULL,
+      role VARCHAR(20) NOT NULL DEFAULT 'member',
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      joined_at TIMESTAMP DEFAULT NOW(),
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+
+  await client`
+    CREATE UNIQUE INDEX IF NOT EXISTS entitystarter_entity_members_entity_user_idx
+    ON starter.entity_members(entity_id, user_id)
+  `;
+
+  await client`
+    CREATE TABLE IF NOT EXISTS starter.entity_invitations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      entity_id UUID NOT NULL REFERENCES starter.entities(id) ON DELETE CASCADE,
+      email VARCHAR(255) NOT NULL,
+      role VARCHAR(20) NOT NULL DEFAULT 'member',
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      invited_by_user_id VARCHAR(128) NOT NULL,
+      token VARCHAR(255) NOT NULL UNIQUE,
+      expires_at TIMESTAMP NOT NULL,
+      accepted_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+
   await client`
     CREATE TABLE IF NOT EXISTS starter.histories (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id VARCHAR(128) NOT NULL REFERENCES starter.users(firebase_uid) ON DELETE CASCADE,
+      entity_id UUID NOT NULL REFERENCES starter.entities(id) ON DELETE CASCADE,
       datetime TIMESTAMP NOT NULL,
       value NUMERIC(12, 2) NOT NULL,
       created_at TIMESTAMP DEFAULT NOW(),
@@ -92,7 +141,18 @@ export async function initDatabase() {
     ON starter.histories(user_id)
   `;
 
-  console.log("Database tables initialized");
+  await client`
+    CREATE INDEX IF NOT EXISTS starter_histories_entity_idx
+    ON starter.histories(entity_id)
+  `;
+
+  // Migration: add entity_id column if it doesn't exist (for existing databases)
+  await client`
+    ALTER TABLE starter.histories
+    ADD COLUMN IF NOT EXISTS entity_id UUID REFERENCES starter.entities(id) ON DELETE CASCADE
+  `;
+
+  console.warn("Database tables initialized");
 }
 
 /**

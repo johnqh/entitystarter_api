@@ -6,6 +6,11 @@ import {
   numeric,
   index,
 } from "drizzle-orm/pg-core";
+import {
+  createEntitiesTable,
+  createEntityMembersTable,
+  createEntityInvitationsTable,
+} from "@sudobility/entity_service";
 
 /**
  * The `starter` PostgreSQL schema.
@@ -42,6 +47,20 @@ export const users = starterSchema.table("users", {
 });
 
 // =============================================================================
+// Entity Tables (via @sudobility/entity_service)
+// =============================================================================
+
+export const entities = createEntitiesTable(starterSchema, "entitystarter");
+export const entityMembers = createEntityMembersTable(
+  starterSchema,
+  "entitystarter"
+);
+export const entityInvitations = createEntityInvitationsTable(
+  starterSchema,
+  "entitystarter"
+);
+
+// =============================================================================
 // Histories Table
 // =============================================================================
 
@@ -70,6 +89,9 @@ export const histories = starterSchema.table(
     user_id: varchar("user_id", { length: 128 })
       .notNull()
       .references(() => users.firebase_uid, { onDelete: "cascade" }),
+    entity_id: uuid("entity_id")
+      .notNull()
+      .references(() => entities.id, { onDelete: "cascade" }),
     datetime: timestamp("datetime").notNull(),
     value: numeric("value", { precision: 12, scale: 2 }).notNull(),
     created_at: timestamp("created_at").defaultNow(),
@@ -77,5 +99,6 @@ export const histories = starterSchema.table(
   },
   table => ({
     userIdx: index("entitystarter_histories_user_idx").on(table.user_id),
+    entityIdx: index("entitystarter_histories_entity_idx").on(table.entity_id),
   })
 );

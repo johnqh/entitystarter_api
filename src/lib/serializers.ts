@@ -14,6 +14,7 @@ import type { History, User } from "@sudobility/entitystarter_types";
 export function serializeHistory(h: {
   id: string;
   user_id: string;
+  entity_id: string;
   datetime: Date;
   value: string;
   created_at: Date | null;
@@ -22,6 +23,7 @@ export function serializeHistory(h: {
   return {
     id: h.id,
     user_id: h.user_id,
+    entity_id: h.entity_id,
     datetime: h.datetime.toISOString(),
     value: Number(h.value),
     created_at: h.created_at?.toISOString() ?? null,

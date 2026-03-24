@@ -3,7 +3,10 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { initDatabase } from "./db";
 import routes from "./routes";
-import { successResponse, errorResponse } from "@sudobility/entitystarter_types";
+import {
+  successResponse,
+  errorResponse,
+} from "@sudobility/entitystarter_types";
 import { getEnv } from "./lib/env-helper";
 
 const app = new Hono();
@@ -59,7 +62,7 @@ const port = parseInt(getEnv("PORT", "8022")!);
 
 initDatabase()
   .then(() => {
-    console.log(`Starter API running on http://localhost:${port}`);
+    console.warn(`Starter API running on http://localhost:${port}`);
   })
   .catch(err => {
     console.error("Failed to initialize database:", err);

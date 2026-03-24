@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { successResponse, errorResponse } from "@sudobility/entitystarter_types";
+import {
+  successResponse,
+  errorResponse,
+} from "@sudobility/entitystarter_types";
 import type {
   History,
   HistoryCreateRequest,

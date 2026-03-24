@@ -1,7 +1,10 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { db, users } from "../db";
-import { successResponse, errorResponse } from "@sudobility/entitystarter_types";
+import {
+  successResponse,
+  errorResponse,
+} from "@sudobility/entitystarter_types";
 import { serializeUser } from "../lib/serializers";
 
 const usersRouter = new Hono();

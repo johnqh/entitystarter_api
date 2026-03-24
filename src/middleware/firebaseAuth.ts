@@ -5,6 +5,7 @@ import { verifyIdToken } from "../services/firebase";
 import { errorResponse } from "@sudobility/entitystarter_types";
 import { eq } from "drizzle-orm";
 import { db, users } from "../db";
+import { entityHelpers } from "../lib/entity-helpers";
 
 declare module "hono" {
   interface ContextVariableMap {
@@ -48,6 +49,12 @@ async function ensureUserExists(
       email: email ?? null,
     });
   }
+
+  // Ensure personal entity exists
+  await entityHelpers.entity.getOrCreatePersonalEntity(
+    firebaseUid,
+    email ?? undefined
+  );
 }
 
 /**
