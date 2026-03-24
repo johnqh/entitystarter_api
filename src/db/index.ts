@@ -48,13 +48,13 @@ export const db: PostgresJsDatabase<typeof schema> = new Proxy(
 /**
  * Initializes the database schema by creating tables if they do not exist.
  *
- * Creates the following in the `starter` schema (all operations are idempotent):
- * 1. The `starter` schema itself (`CREATE SCHEMA IF NOT EXISTS`)
- * 2. The `starter.users` table with columns: `firebase_uid` (PK), `email`,
+ * Creates the following in the `entitystarter` schema (all operations are idempotent):
+ * 1. The `entitystarter` schema itself (`CREATE SCHEMA IF NOT EXISTS`)
+ * 2. The `entitystarter.users` table with columns: `firebase_uid` (PK), `email`,
  *    `display_name`, `created_at`, `updated_at`
- * 3. The `starter.histories` table with columns: `id` (UUID PK), `user_id` (FK to users),
+ * 3. The `entitystarter.histories` table with columns: `id` (UUID PK), `user_id` (FK to users),
  *    `datetime`, `value` (numeric 12,2), `created_at`, `updated_at`
- * 4. An index on `starter.histories(user_id)` for efficient user-scoped queries
+ * 4. An index on `entitystarter.histories(user_id)` for efficient user-scoped queries
  *
  * This function uses raw SQL (not Drizzle migrations) and should be called once
  * at application startup. It is safe to call multiple times.
@@ -64,10 +64,10 @@ export const db: PostgresJsDatabase<typeof schema> = new Proxy(
 export async function initDatabase() {
   const client = getClient();
 
-  await client`CREATE SCHEMA IF NOT EXISTS starter`;
+  await client`CREATE SCHEMA IF NOT EXISTS entitystarter`;
 
   await client`
-    CREATE TABLE IF NOT EXISTS starter.users (
+    CREATE TABLE IF NOT EXISTS entitystarter.users (
       firebase_uid VARCHAR(128) PRIMARY KEY,
       email VARCHAR(255),
       display_name VARCHAR(255),
@@ -78,7 +78,7 @@ export async function initDatabase() {
 
   // Entity tables (via @sudobility/entity_service)
   await client`
-    CREATE TABLE IF NOT EXISTS starter.entities (
+    CREATE TABLE IF NOT EXISTS entitystarter.entities (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       entity_slug VARCHAR(50) NOT NULL UNIQUE,
       entity_type VARCHAR(20) NOT NULL DEFAULT 'personal',
@@ -91,9 +91,9 @@ export async function initDatabase() {
   `;
 
   await client`
-    CREATE TABLE IF NOT EXISTS starter.entity_members (
+    CREATE TABLE IF NOT EXISTS entitystarter.entity_members (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      entity_id UUID NOT NULL REFERENCES starter.entities(id) ON DELETE CASCADE,
+      entity_id UUID NOT NULL REFERENCES entitystarter.entities(id) ON DELETE CASCADE,
       user_id VARCHAR(128) NOT NULL,
       role VARCHAR(20) NOT NULL DEFAULT 'member',
       is_active BOOLEAN NOT NULL DEFAULT true,
@@ -105,13 +105,13 @@ export async function initDatabase() {
 
   await client`
     CREATE UNIQUE INDEX IF NOT EXISTS entitystarter_entity_members_entity_user_idx
-    ON starter.entity_members(entity_id, user_id)
+    ON entitystarter.entity_members(entity_id, user_id)
   `;
 
   await client`
-    CREATE TABLE IF NOT EXISTS starter.entity_invitations (
+    CREATE TABLE IF NOT EXISTS entitystarter.entity_invitations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      entity_id UUID NOT NULL REFERENCES starter.entities(id) ON DELETE CASCADE,
+      entity_id UUID NOT NULL REFERENCES entitystarter.entities(id) ON DELETE CASCADE,
       email VARCHAR(255) NOT NULL,
       role VARCHAR(20) NOT NULL DEFAULT 'member',
       status VARCHAR(20) NOT NULL DEFAULT 'pending',
@@ -125,10 +125,10 @@ export async function initDatabase() {
   `;
 
   await client`
-    CREATE TABLE IF NOT EXISTS starter.histories (
+    CREATE TABLE IF NOT EXISTS entitystarter.histories (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id VARCHAR(128) NOT NULL REFERENCES starter.users(firebase_uid) ON DELETE CASCADE,
-      entity_id UUID NOT NULL REFERENCES starter.entities(id) ON DELETE CASCADE,
+      user_id VARCHAR(128) NOT NULL REFERENCES entitystarter.users(firebase_uid) ON DELETE CASCADE,
+      entity_id UUID NOT NULL REFERENCES entitystarter.entities(id) ON DELETE CASCADE,
       datetime TIMESTAMP NOT NULL,
       value NUMERIC(12, 2) NOT NULL,
       created_at TIMESTAMP DEFAULT NOW(),
@@ -136,20 +136,20 @@ export async function initDatabase() {
     )
   `;
 
-  await client`
-    CREATE INDEX IF NOT EXISTS starter_histories_user_idx
-    ON starter.histories(user_id)
-  `;
-
-  await client`
-    CREATE INDEX IF NOT EXISTS starter_histories_entity_idx
-    ON starter.histories(entity_id)
-  `;
-
   // Migration: add entity_id column if it doesn't exist (for existing databases)
   await client`
-    ALTER TABLE starter.histories
-    ADD COLUMN IF NOT EXISTS entity_id UUID REFERENCES starter.entities(id) ON DELETE CASCADE
+    ALTER TABLE entitystarter.histories
+    ADD COLUMN IF NOT EXISTS entity_id UUID REFERENCES entitystarter.entities(id) ON DELETE CASCADE
+  `;
+
+  await client`
+    CREATE INDEX IF NOT EXISTS entitystarter_histories_user_idx
+    ON entitystarter.histories(user_id)
+  `;
+
+  await client`
+    CREATE INDEX IF NOT EXISTS entitystarter_histories_entity_idx
+    ON entitystarter.histories(entity_id)
   `;
 
   console.warn("Database tables initialized");
