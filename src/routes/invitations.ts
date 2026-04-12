@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import {
   successResponse,
   errorResponse,
+  type EntityInvitation,
 } from "@sudobility/entitystarter_types";
 import { entityHelpers as helpers } from "../lib/entity-helpers";
 
@@ -16,11 +17,11 @@ invitationsRouter.get("/", async c => {
   const userEmail = c.get("userEmail");
 
   if (!userEmail) {
-    return c.json(successResponse([]));
+    return c.json(successResponse<EntityInvitation[]>([]));
   }
 
   try {
-    const invitations =
+    const invitations: EntityInvitation[] =
       await helpers.invitations.getUserPendingInvitations(userEmail);
     return c.json(successResponse(invitations));
   } catch (error: any) {
@@ -35,7 +36,7 @@ invitationsRouter.post("/:token/accept", async c => {
 
   try {
     await helpers.invitations.acceptInvitation(token, userId);
-    return c.json(successResponse(null));
+    return c.json(successResponse<null>(null));
   } catch (error: any) {
     console.error("Error accepting invitation:", error);
     return c.json(errorResponse(error.message || "Bad request"), 400);
@@ -47,7 +48,7 @@ invitationsRouter.post("/:token/decline", async c => {
 
   try {
     await helpers.invitations.declineInvitation(token);
-    return c.json(successResponse(null));
+    return c.json(successResponse<null>(null));
   } catch (error: any) {
     console.error("Error declining invitation:", error);
     return c.json(errorResponse(error.message || "Bad request"), 400);

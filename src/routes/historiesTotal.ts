@@ -1,7 +1,10 @@
 import { Hono } from "hono";
 import { sql } from "drizzle-orm";
 import { db, histories } from "../db";
-import { successResponse } from "@sudobility/entitystarter_types";
+import {
+  successResponse,
+  type HistoryTotalResponse,
+} from "@sudobility/entitystarter_types";
 
 const historiesTotalRouter = new Hono();
 
@@ -24,7 +27,8 @@ historiesTotalRouter.get("/total", async c => {
     .from(histories);
 
   const total = Number(result[0].total);
-  return c.json(successResponse({ total }));
+  const data: HistoryTotalResponse = { total };
+  return c.json(successResponse(data));
 });
 
 export default historiesTotalRouter;

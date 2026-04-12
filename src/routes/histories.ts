@@ -4,6 +4,9 @@ import { db, histories } from "../db";
 import {
   successResponse,
   errorResponse,
+  type History,
+  type HistoryCreateRequest,
+  type HistoryUpdateRequest,
 } from "@sudobility/entitystarter_types";
 import { serializeHistory, isValidDatetime } from "../lib/serializers";
 import {
@@ -59,7 +62,7 @@ historiesRouter.get("/", async c => {
     .limit(limit)
     .offset(offset);
 
-  const data = rows.map(serializeHistory);
+  const data: History[] = rows.map(serializeHistory);
   return c.json(successResponse(data));
 });
 
@@ -78,7 +81,7 @@ historiesRouter.post("/", async c => {
     );
   }
 
-  const body = await c.req.json();
+  const body: HistoryCreateRequest = await c.req.json();
   const { datetime, value } = body;
 
   if (!datetime || value === undefined || value === null) {
@@ -126,7 +129,7 @@ historiesRouter.put("/:historyId", async c => {
     );
   }
 
-  const body = await c.req.json();
+  const body: HistoryUpdateRequest = await c.req.json();
   const updates: Record<string, unknown> = {};
 
   if (body.datetime !== undefined) {
@@ -200,7 +203,7 @@ historiesRouter.delete("/:historyId", async c => {
     return c.json(errorResponse("History not found"), 404);
   }
 
-  return c.json(successResponse(null));
+  return c.json(successResponse<null>(null));
 });
 
 export default historiesRouter;
