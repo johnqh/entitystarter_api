@@ -1,6 +1,6 @@
 {
   "name": "entitystarter_api",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "private": true,
   "description": "Starter API - Hono backend with PostgreSQL + Drizzle ORM",
   "scripts": {
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@sudobility/auth_service": "^1.1.17",
-    "@sudobility/entity_service": "^1.0.35",
+    "@sudobility/entity_service": "^1.0.36",
     "@sudobility/entitystarter_types": "^0.0.18",
     "@sudobility/types": "^1.9.62",
     "drizzle-orm": "^0.44.2",
