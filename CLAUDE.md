@@ -122,3 +122,12 @@ Uses `@sudobility/auth_service` for Firebase token verification with caching.
 ## Git Workflow
 
 - Do not use feature branches for code changes. Always stay on the current branch.
+
+## Testing
+
+- **One runner, two configs.** `bun run test` (`vitest.config.ts`) excludes `**/*.db.test.ts` and never touches a database; this is what CI runs. `bun run test:db` (`vitest.db.config.ts`) collects only those files and is **manual — never run in CI**.
+- **Database tests are named `*.db.test.ts`.** The suffix is the only marker; directory is irrelevant.
+- **`TEST_DATABASE_URL`, not `DATABASE_URL`.** `tests/setup.db.ts` requires the host be exactly `localhost` (`127.0.0.1` is refused) before assigning `DATABASE_URL`. `tests/setup.ts` deletes `DATABASE_URL` outright, so a production URL exported in your shell can never reach a test.
+- No `*.db.test.ts` files exist yet, so `bun run test:db` exits 1 with `No test files found`. That is expected — vitest does not load setup files when nothing matches. Do **not** add `--passWithNoTests`: it would also turn a collected-nothing run green once this repo does have database tests.
+- Local default: `TEST_DATABASE_URL=postgresql://localhost:5432/entitystarter_test` (in `.env` and `.env.example`).
+

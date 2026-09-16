@@ -70,3 +70,16 @@ bun run verify         # All checks + build (use before commit)
 ## License
 
 See package.json (private, not published).
+
+## Testing
+
+```bash
+bun run test      # Unit tests. Never touches a database.
+bun run test:db   # Database tests (*.db.test.ts). Run manually.
+```
+
+`bun run test:db` requires `TEST_DATABASE_URL` pointing at a **localhost**
+database; any other host is refused, `127.0.0.1` included. It is never run in
+CI — database tests are excluded from `bun run test` by vitest collection, not
+by a runtime skip.
+
